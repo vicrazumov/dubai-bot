@@ -4,7 +4,7 @@ let openai;
 let assistant;
 let pollingInterval;
 
-export async function initiate(apiKey, assistantId, _pollingInterval) {
+export async function initializeOpenApi(apiKey, assistantId, _pollingInterval) {
     if (openai || assistant) {
         console.warn('open ai client already initiated')
         return ;
@@ -20,6 +20,8 @@ export async function createThread() {
     const thread = await openai.beta.threads.create();
 
     async function sendMessageAndGetAnswer(content) {
+        console.log('sending a request to open ai: ' + content) 
+
         const message = await openai.beta.threads.messages.create(
             thread.id,
             {
@@ -42,30 +44,30 @@ export async function createThread() {
             );
     
             if (runChecked.status === 'queued' || runChecked.status === 'in_progress') {
-                // console.log('...');
+                console.log('...');
                 await new Promise(reject => setTimeout(reject, pollingInterval));
                 
                 return checkRun();
             }
     
-            // console.log('run finished ' + runChecked.status)
+            return runChecked.status;
+            console.log('run finished ' + runChecked.status)
         }
 
-        await checkRun();
+        const result = await checkRun();
 
-        if (runChecked.status !== 'completed') {
-            return [`ответ не получен по причине: ${runChecked.status}`]
+        if (result !== 'completed') {
+            return [`ответ не получен по причине: ${result}`]
         }
 
         const messages = await openai.beta.threads.messages.list(
             thread.id
         );
     
-        return messages.data.map(m => {
-            if (m.role === "assistant" && m.run_id === run.id) {
-                return m.content[0].text.value
-            }
-        })
+        return messages.data
+            .filter(m => m.role === "assistant" && m.run_id === run.id)
+            .map(m => m.content[0].text.value)
+            .reverse()     
     }
 
     return ({

@@ -1,17 +1,27 @@
 import dotenv from "dotenv";
-import { initiate, createThread } from "./openai-client.mjs";
+import { initializeOpenApi, createThread } from "./openai-client.mjs";
+import { initializeTelegramBot } from "./telegram.mjs";
 
 dotenv.config();
-const { OPEN_AI_KEY, ASSISTANT_ID, POLLING_INTERVAL } = process.env;
+const { OPEN_AI_KEY, ASSISTANT_ID, POLLING_INTERVAL, TELEGRAM_KEY } = process.env;
 
 async function main() {
-    await initiate(OPEN_AI_KEY, ASSISTANT_ID, POLLING_INTERVAL);
+    await initializeOpenApi(OPEN_AI_KEY, ASSISTANT_ID, POLLING_INTERVAL);
 
-    const thread = await createThread();
+    initializeTelegramBot(TELEGRAM_KEY, 
+        (ctx) => ctx.reply('Персональный помощник по нашей логистике. А также рекомендации по различным местам. Просто задайте вопрос!'),
+        async (ctx) => {
+            if (ctx.message.text === '/start') return ctx.reply('Персональный помощник по нашей логистике. А также рекомендации по различным местам. Просто задайте вопрос!');
+            const thread = await createThread();            
+            const replies = await thread.sendMessageAndGetAnswer(ctx.message.text);
 
-    await thread.sendMessageAndGetAnswer('куда собираетс лев?');
+            // console.log('replies received:' + replies.length)
 
-    await thread.sendMessageAndGetAnswer('а что еще есть в дубае для детей?');
+            replies.forEach(r => {
+                ctx.sendMessage(r)
+            })
+        }
+    );
 }
 
 main();
