@@ -1,25 +1,23 @@
 import dotenv from "dotenv";
-import { initializeOpenApi, createThread } from "./openai-client.mjs";
+import { initializeOpenApi, sendMessageAndGetAnswer } from "./openai-chat-completion.mjs";
 import { initializeTelegramBot } from "./telegram.mjs";
 
 dotenv.config();
-const { OPEN_AI_KEY, ASSISTANT_ID, POLLING_INTERVAL, TELEGRAM_KEY, TELEGRAM_ALLOWED_USERS } = process.env;
+const { OPEN_AI_KEY, TELEGRAM_KEY, TELEGRAM_ALLOWED_USERS } = process.env;
 
 async function main() {
-    await initializeOpenApi(OPEN_AI_KEY, ASSISTANT_ID, POLLING_INTERVAL);
+    await initializeOpenApi(OPEN_AI_KEY);
 
     initializeTelegramBot(TELEGRAM_KEY, 
         (ctx) => ctx.reply('Персональный помощник по нашей поездке. А также рекомендации по различным местам. Просто задайте вопрос!'),
         async (ctx) => {
-            if (ctx.message.text === '/start') return ctx.reply('Персональный помощник по нашей логистике. А также рекомендации по различным местам. Просто задайте вопрос!');
-            const thread = await createThread();            
-            const replies = await thread.sendMessageAndGetAnswer(ctx.message.text);
+            if (ctx.message.text === '/start') return ctx.reply('Персональный помощник по нашей логистике. А также рекомендации по различным местам. Просто задайте вопрос!');         
+            const replies = await sendMessageAndGetAnswer(ctx.message.text);
 
             // console.log('replies received:' + replies.length)
 
-            replies.forEach(r => {
-                ctx.sendMessage(r)
-            })
+
+            ctx.sendMessage(replies);
         },
         TELEGRAM_ALLOWED_USERS.split(',')
     );
