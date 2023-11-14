@@ -3,13 +3,13 @@ import { initializeOpenApi, createThread } from "./openai-client.mjs";
 import { initializeTelegramBot } from "./telegram.mjs";
 
 dotenv.config();
-const { OPEN_AI_KEY, ASSISTANT_ID, POLLING_INTERVAL, TELEGRAM_KEY } = process.env;
+const { OPEN_AI_KEY, ASSISTANT_ID, POLLING_INTERVAL, TELEGRAM_KEY, TELEGRAM_ALLOWED_USERS } = process.env;
 
 async function main() {
     await initializeOpenApi(OPEN_AI_KEY, ASSISTANT_ID, POLLING_INTERVAL);
 
     initializeTelegramBot(TELEGRAM_KEY, 
-        (ctx) => ctx.reply('Персональный помощник по нашей логистике. А также рекомендации по различным местам. Просто задайте вопрос!'),
+        (ctx) => ctx.reply('Персональный помощник по нашей поездке. А также рекомендации по различным местам. Просто задайте вопрос!'),
         async (ctx) => {
             if (ctx.message.text === '/start') return ctx.reply('Персональный помощник по нашей логистике. А также рекомендации по различным местам. Просто задайте вопрос!');
             const thread = await createThread();            
@@ -20,7 +20,8 @@ async function main() {
             replies.forEach(r => {
                 ctx.sendMessage(r)
             })
-        }
+        },
+        TELEGRAM_ALLOWED_USERS.split(',')
     );
 }
 
