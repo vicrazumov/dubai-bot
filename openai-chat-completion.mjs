@@ -1,17 +1,23 @@
 import OpenAI from "openai";
 
 let openai;
+let logger;
 
-export function initializeOpenApi(apiKey,) {
+export function initializeOpenApi(apiKey, botLogger) {
     if (openai) {
-        console.warn('open ai client already initiated')
+        logger.warn('open ai client already initiated')
         return ;
     }
 
+    logger = botLogger;
     openai = new OpenAI({ apiKey });
+    
+    logger.info('open ai client launched')
 }
 
 export async function sendMessageAndGetAnswer(message) {
+    logger.info(`message sent: ${message}`);
+
     const response = await openai.chat.completions.create({
         model: "gpt-4-1106-preview",
         messages: [
@@ -30,6 +36,8 @@ export async function sendMessageAndGetAnswer(message) {
         frequency_penalty: 0,
         presence_penalty: 0,
     });
+
+    logger.info(`answer received for ${message}`);
 
     return response?.choices[0]?.message.content
 }
