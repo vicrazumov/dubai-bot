@@ -5,8 +5,8 @@ const allowedUsernames = [];
 let logger;
 
 const isUserAllowed = (ctx) => {
-    if (allowedUsernames.indexOf(ctx.from.username) === -1) {
-        logger.warn(`user ${ctx.from.username} not allowed`);
+    if (allowedUsernames.indexOf(ctx.from.username) === -1 && allowedUsernames.indexOf(ctx.from.id.toString()) === -1) {
+        logger.warn(`user ${ctx.from.username} (id ${ctx.from.id}) not allowed`);
         ctx.reply('Your user is not whitelisted');
         return false;
     }
@@ -18,14 +18,8 @@ export function initializeTelegramBot(apiKey, onStart, onMessage, _allowedUserna
         logger.warn('Telegram bot already connected')
         return
     }
-
-    if (isWebhook) {
-        bot = new Telegraf(apiKey, {
-            telegram: { webhookReply: true },
-        })    
-    } else {
-        bot = new Telegraf(apiKey)
-    }
+    
+    bot = new Telegraf(apiKey)
     
     logger = botLogger;
 
@@ -51,8 +45,10 @@ export function initializeTelegramBot(apiKey, onStart, onMessage, _allowedUserna
         }
     })
 
-    bot.launch()
-    logger.info('Telegram bot launched')
+    if (!isWebhook) {
+        bot.launch()
+        logger.info('Telegram bot launched')
+    }        
 
     process.once('SIGINT', () => bot.stop('SIGINT'))
     process.once('SIGTERM', () => bot.stop('SIGTERM'))

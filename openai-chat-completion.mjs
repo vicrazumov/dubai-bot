@@ -37,7 +37,7 @@ export async function sendMessageAndGetAnswer(message) {
         presence_penalty: 0,
     });
 
-    logger.info(`answer received for ${message}`);
+    logger.info(`answer received for ${message}`, response?.choices[0]?.message.content);
 
     return response?.choices[0]?.message.content
 }
