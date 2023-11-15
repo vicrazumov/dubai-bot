@@ -39,9 +39,11 @@ const bot = initializeTelegramBot(TELEGRAM_KEY,
         if (ctx.message.text.length === 0) return ctx.reply("Бот поддерживает только текст");
         if (ctx.message.text === '/start') return ctx.reply(greeting);
 
-        const replies = await sendMessageAndGetAnswer(ctx.message.text);
+        await ctx.persistentChatAction('typing', async () => {
+            const replies = await sendMessageAndGetAnswer(ctx.message.text);
 
-        ctx.sendMessage(replies);
+            ctx.sendMessage(replies);
+        });        
     },
     TELEGRAM_ALLOWED_USERS.split(','),
     botLogger,
@@ -51,6 +53,10 @@ const bot = initializeTelegramBot(TELEGRAM_KEY,
 let webhookHandler;
 if (IS_GCLOUD) {
     webhookHandler = await bot.createWebhook({ domain: WEBHOOK_DOMAIN })
+    botLogger.info('Telegram bot launched')
+
+    process.once('SIGINT', () => botLogger.info('Function stopped SIGINT'))
+    process.once('SIGTERM', () => botLogger.info('Function stopped SIGTERM'))
 }
 
 export const telegramBot = IS_GCLOUD ? onRequest(async (req, res) => {

@@ -48,10 +48,10 @@ export function initializeTelegramBot(apiKey, onStart, onMessage, _allowedUserna
     if (!isWebhook) {
         bot.launch()
         logger.info('Telegram bot launched')
-    }        
 
-    process.once('SIGINT', () => bot.stop('SIGINT'))
-    process.once('SIGTERM', () => bot.stop('SIGTERM'))
+        process.once('SIGINT', () => bot.stop('SIGINT'))
+        process.once('SIGTERM', () => bot.stop('SIGTERM'))
+    }            
 
     return bot;
 }
