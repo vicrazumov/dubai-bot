@@ -23,7 +23,7 @@ const tools = [
     type: "function",
     function: {
       name: "search_internet",
-      description: "Use this function to search internet for the newest information.",
+      description: "Use this function to search internet for the newest information. Call it just once.",
       parameters: {
         type: "object",
         properties: {
@@ -59,31 +59,33 @@ export async function sendMessageAndGetAnswer(message) {
     const response = await openai.chat.completions.create({
         model: chatCompletionSettings.model,
         messages,
-        tools,
-        // temperature: 1,
-        // max_tokens: 2665,
-        // top_p: 1,
-        // frequency_penalty: 0,
-        // presence_penalty: 0,
+        tools,        
     });
 
     const responseMessage = response.choices[0].message;
 
     const toolCalls = responseMessage.tool_calls;
-    if (responseMessage.tool_calls) {           
+    if (toolCalls) {           
       logger.info(`tool call received for ${message}`); 
-      messages.push(responseMessage);
+      if (toolCalls.length > 1) {
+        logger.warn(`${toolCalls.length} tool calls received for ${message}`)
+      }
+
+      messages.push(responseMessage);          
 
       const toolCall = toolCalls[0]
       const functionArgs = JSON.parse(toolCall.function.arguments);
       const functionResponse = await search(functionArgs.query);
 
-      messages.push({
-        tool_call_id: toolCall.id,
-        role: "tool",
-        name: "search_internet",
-        content: JSON.stringify(functionResponse),
-      });
+      // handling multiple calls just in case - we still want to run just 1 query
+      for (const _toolCall of toolCalls) {
+        messages.push({
+          tool_call_id: _toolCall.id,
+          role: "tool",
+          name: "search_internet",
+          content: JSON.stringify(functionResponse),
+        });
+      }
       
       const secondResponse = await openai.chat.completions.create({
         model: chatCompletionSettings.model,
