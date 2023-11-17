@@ -61,8 +61,8 @@ export async function querySheetDb({ cuisine, tag = "dining", minrating = 4.0, a
         botLogger.info('recommendation search results received\n', results)        
 
         return results;
-    } catch (err) {
+    } catch (err) {        
         botLogger.error('call to recommendation engine failed', err)
-        return [];
+        throw err;
     }
 }

@@ -47,6 +47,6 @@ export async function search({ query }) {
         return results;
     } catch (err) {
         botLogger.error('call to search engine failed', err)
-        return [];
+        throw err;
     }
 }

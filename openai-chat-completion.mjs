@@ -89,7 +89,7 @@ const chatCompletionSettings = {
   model: "gpt-4-1106-preview",  
 }
 
-export async function sendMessageAndGetAnswer(message) {
+export async function sendMessageAndGetAnswer(message) {    
     logger.info(`message sent: ${message}`);
 
     const messages = [
@@ -103,51 +103,62 @@ export async function sendMessageAndGetAnswer(message) {
       }
     ];
 
-    const response = await openai.chat.completions.create({
-        model: chatCompletionSettings.model,
-        messages,
-        tools,        
-    });
+    try {
+      const response = await openai.chat.completions.create({
+          model: chatCompletionSettings.model,
+          messages,
+          tools,        
+      });
 
-    const responseMessage = response.choices[0].message;
+      const responseMessage = response.choices[0].message;
 
-    const toolCalls = responseMessage.tool_calls;
-    if (toolCalls) {           
-      logger.info(`tool call received for ${message}`); 
-      if (toolCalls.length > 1) {
-        logger.warn(`${toolCalls.length} tool calls received for ${message}`)
-      }
+      const toolCalls = responseMessage.tool_calls;
+      if (toolCalls) {           
+        logger.info(`tool call received for ${message}`); 
+        if (toolCalls.length > 1) {
+          logger.warn(`${toolCalls.length} tool calls received for ${message}`)
+        }
 
-      messages.push(responseMessage);          
+        messages.push(responseMessage);          
 
-      const toolCall = toolCalls[0];
-      const functionName = toolCall.function.name;
-      const functionToCall = functions[functionName];
-      const functionArgs = JSON.parse(toolCall.function.arguments);
-      const functionResponse = await functionToCall(functionArgs);
+        const toolCall = toolCalls[0];
+        const functionName = toolCall.function.name;
+        const functionToCall = functions[functionName];
+        const functionArgs = JSON.parse(toolCall.function.arguments);
+        let functionResponse;
+        try {
+          functionResponse = await functionToCall(functionArgs);
+        } catch (err) {
+          functionResponse = [];
+          botLogger.info("Error in a function call. AI client will proceed regardless.", err);
+        }
 
-      // handling multiple calls just in case - we still want to run just 1 query
-      for (const _toolCall of toolCalls) {
-        messages.push({
-          tool_call_id: _toolCall.id,
-          role: "tool",
-          name: functionName,
-          content: JSON.stringify(functionResponse),
-        });
-      }
-      
-      const secondResponse = await openai.chat.completions.create({
-        model: chatCompletionSettings.model,
-        messages: messages,
-      }); 
+        // handling multiple calls just in case - we still want to run just 1 query
+        for (const _toolCall of toolCalls) {
+          messages.push({
+            tool_call_id: _toolCall.id,
+            role: "tool",
+            name: functionName,
+            content: JSON.stringify(functionResponse),
+          });
+        }
+        
+        const secondResponse = await openai.chat.completions.create({
+          model: chatCompletionSettings.model,
+          messages: messages,
+        }); 
 
-      logger.info(`second response received for ${message}`, secondResponse?.choices[0]?.message.content);
+        logger.info(`second response received for ${message}`, secondResponse?.choices[0]?.message.content);
 
-      return secondResponse.choices[0].message.content;
-    } else {
-      logger.info(`text response received for ${message}`, response?.choices[0]?.message.content);
+        return secondResponse.choices[0].message.content;
+      } else {
+        logger.info(`text response received for ${message}`, response?.choices[0]?.message.content);
 
-      return response.choices[0].message.content
-    }    
+        return response.choices[0].message.content
+      }    
+    } catch(err) {
+      botLogger.error('open ai error', err);
+      throw err;
+    }
 }
 

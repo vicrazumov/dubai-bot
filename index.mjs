@@ -44,9 +44,13 @@ const bot = initializeTelegramBot(TELEGRAM_KEY,
         if (ctx.message.text === '/start') return ctx.reply(greeting);
 
         await ctx.persistentChatAction('typing', async () => {
-            const replies = await sendMessageAndGetAnswer(ctx.message.text);
-
-            ctx.sendMessage(replies);
+            try {
+                const replies = await sendMessageAndGetAnswer(ctx.message.text);
+                ctx.sendMessage(replies);
+            } catch (err) {
+                ctx.reply("Произошла ошибка. Попробуйте отправить ваш запрос еще раз.")
+                botLogger.info("User informed about the error", err);
+            }            
         });        
     },
     TELEGRAM_ALLOWED_USERS.split(','),
