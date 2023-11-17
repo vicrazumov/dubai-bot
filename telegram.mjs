@@ -13,7 +13,7 @@ const isUserAllowed = (ctx) => {
     return true;
 }
 
-export function initializeTelegramBot(apiKey, onStart, onMessage, _allowedUsernames, botLogger, isWebhook) {
+export function initializeTelegramBot(apiKey, greeting, reactToMessage, _allowedUsernames, botLogger, isWebhook, stayWithUsTimeout) {
     if (bot) {
         logger.warn('Telegram bot already connected')
         return
@@ -35,13 +35,37 @@ export function initializeTelegramBot(apiKey, onStart, onMessage, _allowedUserna
     bot.command('/start', ctx => {
         if (isUserAllowed(ctx)) {
             logger.info(`User ${ctx.from.username ?? ctx.from.id} connected`)
-            onStart(ctx);
+            ctx.reply(greeting);
         }
     })    
-    bot.on('message', ctx => {
+    bot.on('message', async ctx => {
+        const userId = ctx.from.username || ctx.from.id.toString();
+
         if (isUserAllowed(ctx)) {
-            logger.info(`User ${ctx.from.username ?? ctx.from.id} sent a message`)
-            onMessage(ctx);
+            logger.info(`User ${userId} sent a message`)
+            
+            if (ctx.message.text.length === 0) return ctx.reply("Бот поддерживает только текст");
+            if (ctx.message.text === '/start') return ctx.reply(greeting);            
+
+            await ctx.persistentChatAction('typing', async () => {
+                try {
+                    const timer = setTimeout(() => ctx.reply('Я все еще работаю над вашим запросом. Подождите, пожалуйста, еще.'), stayWithUsTimeout);
+
+                    const replies = await reactToMessage(ctx.message.text, userId);
+                    clearTimeout(timer);
+
+                    try {
+                        await ctx.sendMessage(replies, { parse_mode: 'Markdown' });
+                    } catch (err) {
+                        logger.error(`sending markdown failed. sent as plain text`, replies)
+
+                        ctx.sendMessage(replies);
+                    }
+                } catch (err) {
+                    ctx.reply("Произошла ошибка. Попробуйте отправить ваш запрос еще раз.")
+                    logger.info("User informed about the error", err);
+                }            
+            });  
         }
     })
 

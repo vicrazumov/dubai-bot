@@ -49,49 +49,23 @@ if (!process.env['GCLOUD_PROJECT']) {
             }
         });
 
-        botLogger.info("successdully read settings from the db.");
+        botLogger.info("successfully read settings from the db.");
     } catch (err) {
         botLogger.error("couldn't read settings from the db. will continue with default settings");
     }
     
 }
 
-const greeting = 'Персональный помощник по нашей поездке. А также рекомендации по различным местам. Просто задайте вопрос!';
-
 
 initializeOpenApi(OPEN_AI_KEY, botLogger, TAVILY_KEY, SHEET_DB_KEY, MODEL_INSTRUCTIONS);
 
 const bot = initializeTelegramBot(TELEGRAM_KEY, 
-    (ctx) => ctx.reply(greeting),
-    async (ctx) => {
-        if (ctx.message.text.length === 0) return ctx.reply("Бот поддерживает только текст");
-        if (ctx.message.text === '/start') return ctx.reply(greeting);
-
-        const userId = ctx.from.username || ctx.from.id.toString();
-
-        await ctx.persistentChatAction('typing', async () => {
-            try {
-                const timer = setTimeout(() => ctx.reply('Я все еще работаю над вашим запросом. Подождите, пожалуйста, еще.'), TELEGRAM_STAY_WITH_US_TIMEOUT);
-
-                const replies = await sendMessageAndGetAnswer(ctx.message.text, userId);
-                clearTimeout(timer);
-
-                try {
-                    await ctx.sendMessage(replies, { parse_mode: 'Markdown' });
-                } catch (err) {
-                    botLogger.error(`sending markdown failed. sent as plain text`, replies)
-
-                    ctx.sendMessage(replies);
-                }
-            } catch (err) {
-                ctx.reply("Произошла ошибка. Попробуйте отправить ваш запрос еще раз.")
-                botLogger.info("User informed about the error", err);
-            }            
-        });        
-    },
+    'Персональный помощник по нашей поездке. А также рекомендации по различным местам. Просто задайте вопрос!',
+    sendMessageAndGetAnswer,
     TELEGRAM_ALLOWED_USERS,
     botLogger,
     IS_GCLOUD,
+    TELEGRAM_STAY_WITH_US_TIMEOUT
 );
 
 let webhookHandler;
