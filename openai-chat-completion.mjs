@@ -40,7 +40,7 @@ const tools = [
     type: "function",
     function: {
       name: functionNames.searchInternet,
-      description: "Use this function to search internet for the newest information.",
+      description: "Use this function to search internet for the newest information. Always use this when you are asked to look for something",
       parameters: {
         type: "object",
         properties: {

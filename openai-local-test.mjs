@@ -9,7 +9,7 @@ const SHEET_DB_KEY = process.env.SHEET_DB_KEY;
 
 initializeOpenApi(OPEN_AI_KEY, console, TAVILY_KEY, SHEET_DB_KEY);
 
-await sendMessageAndGetAnswer("расскажи про glitch dubai", "user1");
-
-const replies = await sendMessageAndGetAnswer("а где он находиться?", "user1");
-console.log(replies)
+await sendMessageAndGetAnswer("куда пойти со Львом", "user1");
+await sendMessageAndGetAnswer("расскажи про первое место подробнее?", "user1");
+await sendMessageAndGetAnswer("дай сайт", "user1");
+await sendMessageAndGetAnswer("этот не работает. найди другой", "user1");
