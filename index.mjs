@@ -7,7 +7,7 @@ import { onRequest } from "firebase-functions/v2/https";
 import { defineString } from "firebase-functions/params";
 
 dotenv.config();
-let OPEN_AI_KEY, TELEGRAM_KEY, TELEGRAM_ALLOWED_USERS, WEBHOOK_DOMAIN, TAVILY_KEY, SHEET_DB_KEY;
+let OPEN_AI_KEY, TELEGRAM_KEY, TELEGRAM_ALLOWED_USERS, WEBHOOK_DOMAIN, TAVILY_KEY, SHEET_DB_KEY, TELEGRAM_STAY_WITH_US_TIMEOUT;
 let botLogger;
 let IS_GCLOUD = false;
 
@@ -18,6 +18,7 @@ if (!process.env['GCLOUD_PROJECT']) {
     WEBHOOK_DOMAIN = process.env.WEBHOOK_DOMAIN;
     TAVILY_KEY = process.env.TAVILY_KEY;
     SHEET_DB_KEY = process.env.SHEET_DB_KEY;
+    TELEGRAM_STAY_WITH_US_TIMEOUT = process.env.TELEGRAM_STAY_WITH_US_TIMEOUT;
 
     botLogger = console;
 } else {    
@@ -27,6 +28,7 @@ if (!process.env['GCLOUD_PROJECT']) {
     WEBHOOK_DOMAIN = defineString("WEBHOOK_DOMAIN").value();
     TAVILY_KEY = defineString("TAVILY_KEY").value();
     SHEET_DB_KEY = defineString("SHEET_DB_KEY").value();
+    TELEGRAM_STAY_WITH_US_TIMEOUT = defineString("TELEGRAM_STAY_WITH_US_TIMEOUT").value();
     IS_GCLOUD = true;
     
     botLogger = logger;
@@ -43,9 +45,14 @@ const bot = initializeTelegramBot(TELEGRAM_KEY,
         if (ctx.message.text.length === 0) return ctx.reply("Бот поддерживает только текст");
         if (ctx.message.text === '/start') return ctx.reply(greeting);
 
+        const userId = ctx.from.username || ctx.from.id.toString();
+
         await ctx.persistentChatAction('typing', async () => {
             try {
-                const replies = await sendMessageAndGetAnswer(ctx.message.text);
+                const timer = setTimeout(() => ctx.reply('Я все еще работаю над вашим запросом. Подождите, пожалуйста, еще'), TELEGRAM_STAY_WITH_US_TIMEOUT);
+
+                const replies = await sendMessageAndGetAnswer(ctx.message.text, userId);
+                clearTimeout(timer);
                 ctx.sendMessage(replies);
             } catch (err) {
                 ctx.reply("Произошла ошибка. Попробуйте отправить ваш запрос еще раз.")
