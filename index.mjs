@@ -7,7 +7,7 @@ import { onRequest } from "firebase-functions/v2/https";
 import { defineString } from "firebase-functions/params";
 
 dotenv.config();
-let OPEN_AI_KEY, TELEGRAM_KEY, TELEGRAM_ALLOWED_USERS, WEBHOOK_DOMAIN, TAVILY_KEY;
+let OPEN_AI_KEY, TELEGRAM_KEY, TELEGRAM_ALLOWED_USERS, WEBHOOK_DOMAIN, TAVILY_KEY, SHEET_DB_KEY;
 let botLogger;
 let IS_GCLOUD = false;
 
@@ -17,6 +17,7 @@ if (!process.env['GCLOUD_PROJECT']) {
     TELEGRAM_ALLOWED_USERS = process.env.TELEGRAM_ALLOWED_USERS;
     WEBHOOK_DOMAIN = process.env.WEBHOOK_DOMAIN;
     TAVILY_KEY = process.env.TAVILY_KEY;
+    SHEET_DB_KEY = process.env.SHEET_DB_KEY;
 
     botLogger = console;
 } else {    
@@ -25,6 +26,7 @@ if (!process.env['GCLOUD_PROJECT']) {
     TELEGRAM_ALLOWED_USERS = defineString("TELEGRAM_ALLOWED_USERS").value();
     WEBHOOK_DOMAIN = defineString("WEBHOOK_DOMAIN").value();
     TAVILY_KEY = defineString("TAVILY_KEY").value();
+    SHEET_DB_KEY = defineString("SHEET_DB_KEY").value();
     IS_GCLOUD = true;
     
     botLogger = logger;
@@ -33,7 +35,7 @@ if (!process.env['GCLOUD_PROJECT']) {
 const greeting = 'Персональный помощник по нашей поездке. А также рекомендации по различным местам. Просто задайте вопрос!';
 
 
-initializeOpenApi(OPEN_AI_KEY, botLogger, TAVILY_KEY);
+initializeOpenApi(OPEN_AI_KEY, botLogger, TAVILY_KEY, SHEET_DB_KEY);
 
 const bot = initializeTelegramBot(TELEGRAM_KEY, 
     (ctx) => ctx.reply(greeting),

@@ -9,7 +9,7 @@ export function initializeTavily(apiKey, logger) {
     botLogger.info('search engine initialized')
 }
 
-export async function search(query) {
+export async function search({ query }) {
     if (!TAVILY_KEY) {
         botLogger.error('search engine not initialized')
     }
