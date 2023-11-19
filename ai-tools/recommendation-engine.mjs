@@ -1,7 +1,7 @@
 let SHEET_DB_KEY;
 let botLogger;
 
-export const enums = {
+const enums = {
     cuisine: [
         'japanese',       'burgers',
         'indian',         'breakfast',
@@ -33,7 +33,7 @@ export function initializeRecommendationEngine(apiKey, logger) {
     botLogger.info('recommendation engine initialized')
 }
 
-export async function querySheetDb({ cuisine, tag = "dining", minrating = 4.0, address, limit = 5 }) {
+export async function queryRecommendationEngine({ cuisine, tag = "dining", minrating = 4.0, address, limit = 5 }) {
     if (!SHEET_DB_KEY) {
         botLogger.error('recommendation engine not initialized')
     }
@@ -65,4 +65,41 @@ export async function querySheetDb({ cuisine, tag = "dining", minrating = 4.0, a
         botLogger.error('call to recommendation engine failed', err)
         throw err;
     }
+}
+
+export const QUERY_RECOMMENDATION_ENGINE_TOOL_NAME = 'get_deals_with_reviews';
+
+export const queryRecommendationEngineTool = {
+    type: "function",
+    function: {
+    name: QUERY_RECOMMENDATION_ENGINE_TOOL_NAME,
+    description: "When asked about food recommendations, always use this function to get deals for the best rated restaurants, cafes and entertainment. Don't ask for clarifications, infer all the parameters from the user request. Also search internet in parallel.",
+    parameters: {
+        type: "object",
+        properties: {
+        cuisine: {
+            type: "string",
+            description: "Cuisine preference.",
+            enum: enums.cuisine,
+        },          
+        tag: {
+            type: "string",
+            description: "Additional preference.",
+            enum: enums.tag
+        },
+        minrating: {
+            type: "number",
+            description: "Minimal acceptable rating.",
+        },
+        address: {
+            type: "string",
+            description: "Address of the venue. If asked JBR or Dubai Marina, just use 'JBR'. If downtown or Burj khalifa, use 'downtown'. If mall of emirates, use 'mall of emirates'",
+        },
+        limit: {
+            type: "integer",
+            description: "Number of options returned. Use this when a user explicitly says how many options they want to see.",
+        },
+        },
+    },
+    },
 }

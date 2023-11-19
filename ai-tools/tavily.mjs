@@ -50,3 +50,23 @@ export async function search({ query }) {
         throw err;
     }
 }
+
+export const SEARCH_INTERNET_TOOL_NAME = "search_internet";
+
+export const searchInternetTool = {
+    type: "function",
+    function: {
+    name: SEARCH_INTERNET_TOOL_NAME,
+    description: "Use this function to search internet for the newest information. Always use this when you are asked to look for something",
+    parameters: {
+        type: "object",
+        properties: {
+        query: {
+            type: "string",
+            description: "User request formatted as a search query",
+        },
+        },
+        required: ["query"],
+    },
+    },
+}
