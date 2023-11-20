@@ -7,7 +7,6 @@ const threads = {};
 
 export function initializeOpenApi(apiKey, botLogger) {
     if (openai) {
-        logger.warn('open ai client already initiated')
         return ;
     }
 
@@ -22,7 +21,11 @@ export async function sendMessageAndGetAnswer({ gpt: {
   instructions,
   tools,
   toolNamesToFunctionMap,
-}, message, thread }) {        
+}, message, thread }) {  
+    if (!openai) {
+      throw new Error('OpenAI Client not initialized')
+    }
+  
     let messages = instructions ? [
       {
         "role": "system",
