@@ -21,7 +21,7 @@ export async function sendMessageAndGetAnswer({ gpt: {
   instructions,
   tools,
   toolNamesToFunctionMap,
-}, message, thread }) {  
+}, message, userId, thread }) {  
     if (!openai) {
       throw new Error('OpenAI Client not initialized')
     }
@@ -74,9 +74,9 @@ export async function sendMessageAndGetAnswer({ gpt: {
           const functionToCall = toolNamesToFunctionMap[functionName];
           const functionArgs = JSON.parse(toolCall.function.arguments);
 
-          functionCalls.push(functionToCall(functionArgs).catch(err => {            
+          functionCalls.push(functionToCall(functionArgs, { userId, thread }).catch(err => {            
             logger.warn(`${logPointer} - Error in a function call. AI client will proceed regardless.`, err);
-            return [];
+            return 'Error. The function call failed.';
           }));          
         }
         

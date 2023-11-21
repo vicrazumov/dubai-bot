@@ -1,6 +1,6 @@
 import { Telegraf } from "telegraf"
 
-export default class Bot {
+export default class TelegramBot {
     _checkIsUserAllowedAndWarn = (ctx) => {
         if (this.allowedUsers.indexOf(ctx.from.username) === -1 && this.allowedUsers.indexOf(ctx.from.id.toString()) === -1) {
             logger.warn(`user ${ctx.from.username} (id ${ctx.from.id}) not allowed`);
@@ -57,9 +57,10 @@ export default class Bot {
     
                 await ctx.persistentChatAction('typing', async () => {
                     try {
+                        // todo: throttle per user
                         const timer = setTimeout(() => ctx.reply(stayWithUsMessage), stayWithUsTimeout);
     
-                        const replies = await reactToMessage(ctx.message.text, `${this.name}_${userId}`);
+                        const replies = await reactToMessage(ctx.message.text, userId, `${this.name}_${userId}`);
                         clearTimeout(timer);
     
                         try {
