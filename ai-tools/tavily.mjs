@@ -6,12 +6,14 @@ export function initializeTavily(apiKey, logger) {
     TAVILY_KEY = apiKey;
     botLogger = logger;
 
-    botLogger.info('search engine initialized')
+    botLogger.info('[Search engine] initialized')
 }
 
 export async function search({ query }) {
-    if (!TAVILY_KEY) {
-        botLogger.error('search engine not initialized')
+    if (!TAVILY_KEY) {        
+        botLogger.error('[Search engine] not initialized')
+        
+        throw new Error('Search engine not initialized')
     }
 
     botLogger.info(`searching query: ${query}`)
@@ -39,14 +41,14 @@ export async function search({ query }) {
             }
         }).then(res => res.json())
 
-        botLogger.info('search results received\n', response.answer, response.results)
+        botLogger.info('[Search engine] results received', response.answer, response.results)
 
         const results = response?.results?.map(r => r.content) || [];
         results.unshift(response.answer);
 
         return results;
     } catch (err) {
-        botLogger.error('call to search engine failed', err)
+        botLogger.error('[Search engine] call failed', err)
         throw err;
     }
 }

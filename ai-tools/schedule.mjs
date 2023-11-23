@@ -5,12 +5,13 @@ export default class Schedule {
         this.events = {};
         this.logger = logger;
 
-        this.logger.info('Schedule initialized')
+        this.logger.info('[Schedule] initialized')
     }
 
     createEvent({ id, name, date, createdBy }) {
         if (!name || !date || !createdBy) {
-            this.logger.error('Missing info when creating an event')
+            this.logger.error('[Schedule] Missing info when creating an event')
+
             throw new Error('Missing info when creating an event')
         }
 
@@ -24,7 +25,7 @@ export default class Schedule {
 
         this.events[id] = event
 
-        this.logger.info(`New event ${id} "${name.slice(0, 10)}..." created`)
+        this.logger.info(`[Schedule] New event ${id} "${name.slice(0, 10)}..." created`)
 
         return event;
     }
@@ -34,7 +35,7 @@ export default class Schedule {
             this.events[e.id] = e;
         })
 
-        this.logger.info(`${events.length} events successfully restored`)
+        this.logger.info(`[Schedule] ${events.length} events successfully restored`)
     }
 
     getEvents() {
@@ -48,13 +49,13 @@ export default class Schedule {
     removeEvent(id) {
         const event = this.events[id];
         if (!event) {
-            this.logger.warn(`Event ${id} couldn't be removed as it doesn't exist`)
+            this.logger.warn(`[Schedule] Event ${id} couldn't be removed as it doesn't exist`)
             return
         }
 
         delete this.events[id];
 
-        this.logger.info(`Event ${id} "${event.name.slice(0, 10)}..." removed`)
+        this.logger.info(`[Schedule] Event ${id} "${event.name.slice(0, 10)}..." removed`)
 
         return id;
     }

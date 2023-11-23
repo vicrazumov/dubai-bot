@@ -30,15 +30,15 @@ export function initializeRecommendationEngine(apiKey, logger) {
     SHEET_DB_KEY = apiKey;
     botLogger = logger;
 
-    botLogger.info('recommendation engine initialized')
+    botLogger.info('[Recommendation engine] initialized')
 }
 
 export async function queryRecommendationEngine({ cuisine, tag = "dining", minrating = 4.0, address, limit = 5 }) {
     if (!SHEET_DB_KEY) {
-        botLogger.error('recommendation engine not initialized')
+        botLogger.error('[Recommendation engine] not initialized')
     }
 
-    botLogger.info('recommendations request received', { cuisine, tag, minrating, address, limit })
+    botLogger.info('[Recommendation engine] request received', { cuisine, tag, minrating, address, limit })
 
     let query = `&rate=>=${minrating*10}`;
     if (cuisine) {
@@ -51,18 +51,18 @@ export async function queryRecommendationEngine({ cuisine, tag = "dining", minra
         query += `&address_term=*${address}*`
     }
 
-    botLogger.info(`searching in recommendations: ${query}`)      
+    botLogger.info(`[Recommendation engine] searching`, query)      
 
     try {
         const results = await fetch(`https://sheetdb.io/api/v1/i5933ngo82tpx/search?sort_by=rate&sort_order=desc&limit=${limit}${query}`, {
             headers: { Authorization: `Bearer ${SHEET_DB_KEY}` }
         }).then(res => res.json())
 
-        botLogger.info('recommendation search results received\n', results)        
+        botLogger.info('[Recommendation engine] results received\n', results)        
 
         return results;
     } catch (err) {        
-        botLogger.error('call to recommendation engine failed', err)
+        botLogger.error('[Recommendation engine] call failed', err)
         throw err;
     }
 }

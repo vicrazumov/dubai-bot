@@ -29,12 +29,12 @@ let webhookHandler;
 export default async function initializeDubaiBot(logger) {
     if (isInitialized) {
         if (!webhookHandler) {
-            logger.warn('dubai-bot: incoming request, but bot not yet initialized')
+            logger.warn('[dubai-bot] incoming request, but bot not yet initialized')
         }
 
         return webhookHandler;
     } else {
-        logger.info('dubai-bot: initializing')
+        logger.info('[dubai-bot] initializing')
     }
 
     const firebaseApp = initializeApp();
@@ -83,9 +83,9 @@ export default async function initializeDubaiBot(logger) {
                 }
             });
     
-            logger.info("dubai-bot: successfully read settings from the db");
+            logger.info("[dubai-bot] successfully read settings from the db");
         } catch (err) {
-            logger.error("dubai-bot: couldn't read settings from the db. will continue with default settings", err);
+            logger.error("[dubai-bot] couldn't read settings from the db. will continue with default settings", err);
         }
         
     }    
@@ -110,7 +110,7 @@ export default async function initializeDubaiBot(logger) {
                 value: FieldValue.arrayUnion(newEvent)
             });
         } catch (err) {
-            logger.error('Failed creating a new event in the db', err)
+            logger.error('[dubai-bot] Failed creating a new event in the db', err)
             throw err;
         }
 
@@ -120,7 +120,7 @@ export default async function initializeDubaiBot(logger) {
     const removeEvent = async ({ id }) => {
         const event = schedule.getEvent(id);
         if (!event) {
-            logger.warn(`Attempt removing the event ${id} that doesn't exist`)
+            logger.warn(`[dubai-bot] Attempt removing the event ${id} that doesn't exist`)
             return []
         }
 
@@ -131,7 +131,7 @@ export default async function initializeDubaiBot(logger) {
                 value: FieldValue.arrayRemove(event)
             });
         } catch (err) {
-            logger.error('Failed removing the event in the db', err)
+            logger.error('[dubai-bot] Failed removing the event in the db', err)
             throw err;
         }
 
