@@ -14,7 +14,9 @@ const enums = {
         'ice cream',      'chinese',
         'persian',        'german',
         'french',         'turkish',
-        'steak'
+        'steak',
+        'russian',
+        'georgian'
     ],
     tag: [
         'sports',      'theme park',
@@ -33,7 +35,7 @@ export function initializeRecommendationEngine(apiKey, logger) {
     botLogger.info('[Recommendation engine] initialized')
 }
 
-export async function queryRecommendationEngine({ cuisine, tag = "dining", minrating = 4.0, address, limit = 5 }) {
+export async function queryRecommendationEngine({ cuisine, tag = "dining", minrating = 4.0, address, limit = 5, name }) {
     if (!SHEET_DB_KEY) {
         botLogger.error('[Recommendation engine] not initialized')
     }
@@ -41,11 +43,14 @@ export async function queryRecommendationEngine({ cuisine, tag = "dining", minra
     botLogger.info('[Recommendation engine] request received', { cuisine, tag, minrating, address, limit })
 
     let query = `&rate=>=${minrating*10}`;
+    if (name) {
+        query += `&name=*${name}*`
+    }
     if (cuisine) {
         query += `&cuisines=*${cuisine}*`
     }    
     if (tag && enums.tag.indexOf(tag) !== -1) {
-        query += `&tags=*${tag}*`
+        query += `&full_category=*${tag}*`
     }
     if (address) {
         query += `&address_term=*${address}*`
@@ -86,6 +91,10 @@ export const queryRecommendationEngineTool = {
             type: "string",
             description: "Additional preference.",
             enum: enums.tag
+        },
+        name: {
+            type: "string",
+            description: "Name of the venue.",
         },
         minrating: {
             type: "number",
