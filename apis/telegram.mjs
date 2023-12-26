@@ -4,7 +4,7 @@ import uuid from '../utils/uuid.mjs';
 export default class TelegramBot {
     _checkIsUserAllowedAndWarn = (ctx) => {
         if (this.allowedUsers.indexOf(ctx.from.username) === -1 && this.allowedUsers.indexOf(ctx.from.id.toString()) === -1) {
-            logger.warn(`[Telegram ${this.name}] user ${ctx.from.username} (id ${ctx.from.id}) not allowed`);
+            this.logger.warn(`[Telegram ${this.name}] user ${ctx.from.username} (id ${ctx.from.id}) not allowed`);
             ctx.reply('Your user is not whitelisted');
 
             return false;
@@ -84,10 +84,14 @@ export default class TelegramBot {
 
                     await ctx.persistentChatAction('typing', async () => {                        
                         try {            
-                            clearTimeout(stayWithUsTimeoutPerUser[userId])
-                            stayWithUsTimeoutPerUser[userId] = setTimeout(() => ctx.reply(stayWithUsMessage), stayWithUsTimeout);
-
                             const callUUID = uuid();
+
+                            clearTimeout(stayWithUsTimeoutPerUser[userId])                            
+                            stayWithUsTimeoutPerUser[userId] = setTimeout(() => {
+                                ctx.reply(stayWithUsMessage);
+                                this.logger.info(`[Telegram ${this.name}] ${thread} ${callUUID}: stayWithUs message sent`)
+                            }, stayWithUsTimeout);
+                            
                             this.logger.info(`[Telegram ${this.name}] ${thread} ${callUUID}: telegram calls reactToMessage ${messages.length} times`)
 
                             const reactionPromises = messages.map(msg => reactToMessage(msg, userId, thread));
