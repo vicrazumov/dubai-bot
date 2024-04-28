@@ -16,7 +16,6 @@ class PromiseQueue {
     }
 
     add(item) {
-        debugger
         this.logger.info(`[Queue] Item added`, item);
 
         const queueItem = {
