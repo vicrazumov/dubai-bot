@@ -88,7 +88,7 @@ const processNewMessages = ({ model, thread, tools, toolNamesToFunctionMap, user
 const threads = {};
 
 export async function sendMessageAndGetAnswer({ gpt: { 
-  model = "gpt-4-1106-preview",
+  model = "gpt-4o-mini",
   instructions,
   tools,
   toolNamesToFunctionMap,
